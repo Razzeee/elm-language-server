@@ -133,6 +133,7 @@ This server contributes the following settings:
 
 - `elmLS.trace.server`: Enable/disable trace logging of client and server communication
 - `elmLS.elmPath`: The path to your `elm` executable. Should be empty by default, in that case it will assume the name and try to first get it from a local npm installation or a global one. If you set it manually it will not try to load from the npm folder.
+- `elmLS.elmReviewPath`: The path to your `elm-review` executable. Should be empty by default, in that case it will assume the name and try to first get it from a local npm installation or a global one. If you set it manually it will not try to load from the npm folder.
 - `elmLS.elmFormatPath`: The path to your `elm-format` executable. Should be empty by default, in that case it will assume the name and try to first get it from a local npm installation or a global one. If you set it manually it will not try to load from the npm folder.
 - `elmLS.elmTestPath`: The path to your `elm-test` executable. Should be empty by default, in that case it will assume the name and try to first get it from a local npm installation or a global one. If you set it manually it will not try to load from the npm folder.
 - `elmLS.disableElmLSDiagnostics`: Enable/Disable linting diagnostics from the language server.

@@ -8,6 +8,7 @@ export const enum DiagnosticKind {
   Syntactic,
   Semantic,
   Suggestion,
+  ElmReview,
 }
 
 export function diagnosticsEquals(a: IDiagnostic, b: IDiagnostic): boolean {
@@ -49,6 +50,7 @@ export class FileDiagnostics {
     return [
       ...this.getForKind(DiagnosticKind.ElmMake),
       ...this.getForKind(DiagnosticKind.ElmTest),
+      ...this.getForKind(DiagnosticKind.ElmReview),
       ...this.getForKind(DiagnosticKind.ElmLS),
       ...this.getForKind(DiagnosticKind.Syntactic),
       ...this.getForKind(DiagnosticKind.Semantic),

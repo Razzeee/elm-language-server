@@ -37,6 +37,7 @@ import { ElmLsDiagnostics } from "./providers/diagnostics/elmLsDiagnostics";
 import { FileEventsHandler } from "./providers/handlers/fileEventsHandler";
 import { Settings } from "./util/settings";
 import { TextDocumentEvents } from "./util/textDocumentEvents";
+import { ElmReviewDiagnostics } from "./providers/diagnostics/elmReviewDiagnostics";
 
 export interface ILanguageServer {
   readonly capabilities: InitializeResult;
@@ -170,6 +171,10 @@ export class Server implements ILanguageServer {
 
     container.register(ElmMakeDiagnostics, {
       useValue: new ElmMakeDiagnostics(),
+    });
+
+    container.register(ElmReviewDiagnostics, {
+      useValue: new ElmReviewDiagnostics(),
     });
 
     container.register(ElmLsDiagnostics, {

@@ -1,1 +1,1 @@
-export type DiagnosticSource = "Elm" | "ElmLS";
+export type DiagnosticSource = "Elm" | "ElmLS" | "elm-review";

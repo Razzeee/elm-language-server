@@ -5,6 +5,7 @@ export * from "./completionProvider";
 export * from "./definitionProvider";
 export * from "./diagnostics/diagnosticsProvider";
 export * from "./diagnostics/elmMakeDiagnostics";
+export * from "./diagnostics/elmReviewDiagnostics";
 export * from "./documentFormatingProvider";
 export * from "./documentSymbolProvider";
 export * from "./selectionRangeProvider";
