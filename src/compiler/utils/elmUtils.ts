@@ -4,7 +4,7 @@ import { Connection, CompletionItemKind } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 import { IElmPackageCache } from "../elmPackageCache";
 import { IClientSettings } from "../../util/settings";
-import { ElmProject } from "../program";
+import { ElmProject, IProgramHost } from "../program";
 
 export const isWindows = process.platform === "win32";
 
@@ -25,7 +25,7 @@ export function execCmdSync(
   cmdStatic: string,
   options: IExecCmdOptions = {},
   cwd: string,
-  connection: Connection,
+  host: IProgramHost,
   input?: string,
 ): ExecaSyncReturnValue<string> {
   const cmd = cmdFromUser === "" ? cmdStatic : cmdFromUser;
@@ -41,9 +41,9 @@ export function execCmdSync(
       stripFinalNewline: false,
     });
   } catch (error) {
-    connection.console.warn(JSON.stringify(error));
+    host.logger.warn(JSON.stringify(error));
     if (error.errno && error.errno === "ENOENT") {
-      connection.window.showErrorMessage(
+      host.handleError(
         options.notFoundText
           ? options.notFoundText + ` I'm looking for '${cmd}' at '${cwd}'`
           : `Cannot find executable with name '${cmd}'`,
@@ -81,7 +81,7 @@ export function getEmptyTypes(): {
 export function getElmVersion(
   settings: IClientSettings,
   elmWorkspaceFolder: URI,
-  connection: Connection,
+  host: IProgramHost,
 ): string {
   const options = {
     cmdArguments: ["--version"],
@@ -94,12 +94,12 @@ export function getElmVersion(
     "elm",
     options,
     elmWorkspaceFolder.fsPath,
-    connection,
+    host,
   );
 
   const version = result.stdout.trim();
 
-  connection.console.info(`Elm version ${version} detected.`);
+  host.logger.info(`Elm version ${version} detected.`);
 
   return version;
 }

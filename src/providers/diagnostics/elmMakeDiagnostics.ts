@@ -19,6 +19,7 @@ import { IDiagnostic, IElmIssue } from "./diagnosticsProvider";
 import { ElmDiagnosticsHelper } from "./elmDiagnosticsHelper";
 import execa = require("execa");
 import { ElmToolingJsonManager } from "../../elmToolingJsonManager";
+import { createNodeProgramHost } from "../../compiler/program";
 
 const ELM_MAKE = "Elm";
 export const NAMING_ERROR = "NAMING ERROR";
@@ -242,7 +243,7 @@ export class ElmMakeDiagnostics {
         testOrMakeCommandWithOmittedSettings,
         options,
         workspaceRootPath,
-        this.connection,
+        createNodeProgramHost(this.connection),
       );
       return [];
     } catch (error) {

@@ -12,6 +12,7 @@ import { Diagnostics } from "../../compiler/diagnostics";
 import { CodeActionProvider } from "../codeActionProvider";
 import { ICodeActionParams } from "../paramsExtensions";
 import { comparePackageRanking } from "../ranking";
+import { createNodeProgramHost, IProgramHost } from "../../compiler/program";
 
 const errorCodes = [Diagnostics.ImportMissing.code];
 const fixId = "install_package";
@@ -51,6 +52,7 @@ CommandManager.register(
   async (uri: string, packageName: string) => {
     const settings = container.resolve<Settings>("Settings");
     const connection = container.resolve<Connection>("Connection");
+    const host = createNodeProgramHost(connection);
 
     const program = new ElmWorkspaceMatcher((uri: string) =>
       URI.parse(uri),
@@ -64,7 +66,7 @@ CommandManager.register(
         "elm",
         { cmdArguments: ["install", packageName] },
         program.getRootPath().fsPath,
-        connection,
+        host,
         clientSettings.skipInstallPackageConfirmation ? "y\n" : undefined,
       );
     } catch (e) {
@@ -89,7 +91,7 @@ CommandManager.register(
               "elm",
               { cmdArguments: ["install", packageName] },
               program.getRootPath().fsPath,
-              connection,
+              host,
               `${choice.value}\n`,
             );
 

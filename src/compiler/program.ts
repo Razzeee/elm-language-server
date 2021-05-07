@@ -1,9 +1,9 @@
 import fs from "fs";
 import globby from "globby";
 import os from "os";
+import "reflect-metadata";
 import { container } from "tsyringe";
 import util from "util";
-import { Connection } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 import Parser, { Tree } from "web-tree-sitter";
 import { ICancellationToken } from "../cancellation";
@@ -17,7 +17,7 @@ import {
   IPossibleImportsCache,
   PossibleImportsCache,
 } from "../util/possibleImportsCache";
-import { Settings } from "../util/settings";
+import { getDefaultSettings, IClientSettings } from "../util/settings";
 import { Diagnostic } from "./diagnostics";
 import { TypeCache } from "./typeCache";
 import {
@@ -26,7 +26,8 @@ import {
   TypeChecker,
 } from "./typeChecker";
 import chokidar from "chokidar";
-import { CommandManager } from "../commandManager";
+import { Connection } from "vscode-languageserver";
+import { loadParser } from "../parser";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -135,16 +136,39 @@ interface IElmPackage extends IElmProject {
   exposedModules: Set<string>;
 }
 
+export async function createProgram(
+  rootPath: URI,
+  progressCallback?: (percent: number) => void,
+  programHost?: IProgramHost,
+  settings?: IClientSettings,
+): Promise<IProgram> {
+  const program = new Program(rootPath, programHost, settings);
+  await program.init(
+    progressCallback ??
+      ((): void => {
+        //
+      }),
+  );
+  return program;
+}
+
 export interface IProgramHost {
   readFile(uri: string): Promise<string>;
   readDirectory(uri: string): Promise<string[]>;
   watchFile(uri: string, callback: () => void): void;
+  logger: {
+    info(message: string): void;
+    warn(message: string): void;
+    error(message: string): void;
+  };
+  handleError(message: string): void;
+  onServerDidRestart(
+    handler: (progressReporter: (progress: number) => void) => Promise<void>,
+  ): void;
 }
 
 export class Program implements IProgram {
-  private parser: Parser;
-  private connection: Connection;
-  private settings: Settings;
+  private parser!: Parser;
   private typeCache: TypeCache;
   private typeChecker: TypeChecker | undefined;
   private dirty = true;
@@ -157,20 +181,23 @@ export class Program implements IProgram {
   private resolvedPackageCache = new Map<string, IElmPackage>();
   private host: IProgramHost;
   private filesWatching = new Set<string>();
+  private settings: IClientSettings;
 
-  constructor(private rootPath: URI, programHost?: IProgramHost) {
-    this.settings = container.resolve("Settings");
-    this.connection = container.resolve("Connection");
-    this.parser = container.resolve("Parser");
-    this.connection.console.info(
-      `Starting language server for folder: ${this.rootPath.toString()}`,
-    );
-
+  constructor(
+    private rootPath: URI,
+    programHost?: IProgramHost,
+    settings?: IClientSettings,
+  ) {
     this.typeCache = new TypeCache();
     this.possibleImportsCache = new PossibleImportsCache();
     this.operatorsCache = new Map<string, DefinitionResult>();
     this.diagnosticsCache = new Map<string, Diagnostic[]>();
     this.host = programHost ?? createNodeProgramHost();
+    this.settings = settings ?? getDefaultSettings();
+
+    this.host.logger.info(
+      `Starting language server for folder: ${this.rootPath.toString()}`,
+    );
   }
 
   public async init(
@@ -326,39 +353,32 @@ export class Program implements IProgram {
   private async initWorkspace(
     progressCallback: (percent: number) => void,
   ): Promise<void> {
-    const clientSettings = await this.settings.getClientSettings();
+    if (!container.isRegistered("Parser")) {
+      await loadParser(this.host);
+    }
+
+    this.parser = container.resolve("Parser");
+
     let progress = 0;
     let elmVersion;
     try {
-      elmVersion = utils.getElmVersion(
-        clientSettings,
-        this.rootPath,
-        this.connection,
-      );
+      elmVersion = utils.getElmVersion(this.settings, this.rootPath, this.host);
     } catch (error) {
-      this.connection.console.warn(
+      this.host.logger.warn(
         `Could not figure out elm version, this will impact how good the server works. \n ${error.stack}`,
       );
     }
 
     const pathToElmJson = path.join(this.rootPath.fsPath, "elm.json");
-    this.connection.console.info(`Reading elm.json from ${pathToElmJson}`);
+    this.host.logger.info(`Reading elm.json from ${pathToElmJson}`);
 
     if (!this.filesWatching.has(pathToElmJson)) {
       this.host.watchFile(pathToElmJson, () => {
-        void this.connection.window
-          .createWorkDoneProgress()
-          .then((progress) => {
-            progress.begin("Restarting Elm Language Server", 0);
-
-            this.initWorkspace((percent: number) => {
-              progress.report(percent, `${percent.toFixed(0)}%`);
-            })
-              .then(() => progress.done())
-              .catch(() => {
-                //
-              });
+        this.host.onServerDidRestart(async (progressReporter) => {
+          await this.initWorkspace((percent: number) => {
+            progressReporter(percent);
           });
+        });
       });
       this.filesWatching.add(pathToElmJson);
     }
@@ -372,11 +392,11 @@ export class Program implements IProgram {
       // Run `elm make` to download dependencies
       try {
         utils.execCmdSync(
-          clientSettings.elmPath,
+          this.settings.elmPath,
           "elm",
           { cmdArguments: ["make"] },
           this.rootPath.fsPath,
-          this.connection,
+          this.host,
         );
       } catch (error) {
         // On application projects, this will give a NO INPUT error message, but will still download the dependencies
@@ -387,12 +407,12 @@ export class Program implements IProgram {
       this.forest = new Forest(this.rootProject);
 
       const elmFilePaths = await this.findElmFilesInProject(this.rootProject);
-      this.connection.console.info(
+      this.host.logger.info(
         `Found ${elmFilePaths.length.toString()} files to add to the project`,
       );
 
       if (elmFilePaths.every((a) => a.project !== this.rootProject)) {
-        this.connection.window.showErrorMessage(
+        this.host.handleError(
           "The path or paths you entered in the 'source-directories' field of your 'elm.json' does not contain any elm files.",
         );
       }
@@ -412,13 +432,9 @@ export class Program implements IProgram {
 
       this.findExposedModulesOfDependencies(this.rootProject);
 
-      CommandManager.initHandlers(this.connection);
-
-      this.connection.console.info(
-        `Done parsing all files for ${pathToElmJson}`,
-      );
+      this.host.logger.info(`Done parsing all files for ${pathToElmJson}`);
     } catch (error) {
-      this.connection.console.error(
+      this.host.logger.error(
         `Error parsing files for ${pathToElmJson}:\n${error.stack}`,
       );
     }
@@ -468,7 +484,7 @@ export class Program implements IProgram {
       );
 
       if (!solvedVersions) {
-        this.connection.window.showErrorMessage(
+        this.host.handleError(
           "There is a problem with elm.json. Could not solve dependencies with the given constraints. Try running `elm make` to install missing dependencies.",
         );
         throw new Error("Unsolvable package constraints");
@@ -615,7 +631,7 @@ export class Program implements IProgram {
     const maintainerAndPackageName =
       project.type === "package" ? project.maintainerAndPackageName : undefined;
 
-    this.connection.console.info(`Glob ${sourceDir}/**/*.elm`);
+    this.host.logger.info(`Glob ${sourceDir}/**/*.elm`);
 
     (await this.host.readDirectory(sourceDir)).forEach((matchingPath) => {
       matchingPath = normalizeUri(matchingPath);
@@ -670,7 +686,7 @@ export class Program implements IProgram {
     callback: () => void,
   ): Promise<void> {
     try {
-      this.connection.console.info(`Adding ${filePath.path.toString()}`);
+      this.host.logger.info(`Adding ${filePath.path.toString()}`);
       const fileContent: string = await this.host.readFile(
         filePath.path.toString(),
       );
@@ -687,7 +703,7 @@ export class Program implements IProgram {
       );
       callback();
     } catch (error) {
-      this.connection.console.error(error.stack);
+      this.host.logger.error(error.stack);
     }
   }
 
@@ -718,7 +734,7 @@ export class Program implements IProgram {
   }
 }
 
-export function createNodeProgramHost(): IProgramHost {
+export function createNodeProgramHost(connection?: Connection): IProgramHost {
   return {
     readFile: (uri): Promise<string> =>
       readFile(uri, {
@@ -731,6 +747,23 @@ export function createNodeProgramHost(): IProgramHost {
       }),
     watchFile: (uri: string, callback: () => void): void => {
       chokidar.watch(uri).on("change", callback);
+    },
+    logger: connection?.console ?? {
+      info: (): void => {
+        //
+      },
+      warn: (): void => {
+        //
+      },
+      error: (): void => {
+        //
+      },
+    },
+    handleError: (): void => {
+      //
+    },
+    onServerDidRestart: (): void => {
+      //
     },
   };
 }

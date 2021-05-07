@@ -13,6 +13,8 @@ import { createConnection } from "vscode-languageserver/node";
 import Parser from "web-tree-sitter";
 import { getCancellationStrategyFromArgv } from "./cancellation";
 import { CapabilityCalculator } from "./capabilityCalculator";
+import { createNodeProgramHost } from "./compiler/program";
+import { loadParser } from "./parser";
 import { ASTProvider } from "./providers";
 import {
   ElmAnalyseJsonService,
@@ -41,7 +43,6 @@ container.register<Connection>("Connection", {
     cancellationStrategy: getCancellationStrategyFromArgv(process.argv),
   }),
 });
-container.registerSingleton<Parser>("Parser", Parser);
 
 container.registerSingleton("DocumentEvents", DocumentEvents);
 container.registerSingleton<IElmAnalyseJsonService>(
@@ -62,14 +63,7 @@ connection.onInitialize(
     cancel,
     progress,
   ): Promise<InitializeResult> => {
-    await Parser.init();
-    const absolute = Path.join(__dirname, "tree-sitter-elm.wasm");
-    const pathToWasm = Path.relative(process.cwd(), absolute);
-    connection.console.info(
-      `Loading Elm tree-sitter syntax from ${pathToWasm}`,
-    );
-    const language = await Parser.Language.load(pathToWasm);
-    container.resolve<Parser>("Parser").setLanguage(language);
+    await loadParser(createNodeProgramHost(connection));
 
     container.register(CapabilityCalculator, {
       useValue: new CapabilityCalculator(params.capabilities),

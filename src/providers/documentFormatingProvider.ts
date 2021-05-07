@@ -12,6 +12,7 @@ import { ElmWorkspaceMatcher } from "../util/elmWorkspaceMatcher";
 import { Settings } from "../util/settings";
 import { TextDocumentEvents } from "../util/textDocumentEvents";
 import { IDocumentFormattingParams } from "./paramsExtensions";
+import { createNodeProgramHost } from "../compiler/program";
 
 type DocumentFormattingResult = Promise<TextEdit[] | undefined>;
 
@@ -51,7 +52,7 @@ export class DocumentFormattingProvider {
       "elm-format",
       options,
       elmWorkspaceRootPath.fsPath,
-      this.connection,
+      createNodeProgramHost(this.connection),
       text,
     );
     return Diff.getTextRangeChanges(text, format.stdout);

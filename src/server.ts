@@ -11,10 +11,9 @@ import { URI, Utils } from "vscode-uri";
 import { CapabilityCalculator } from "./capabilityCalculator";
 import { ElmToolingJsonManager } from "./elmToolingJsonManager";
 import {
-  Program,
-  IProgram,
   createNodeProgramHost,
   IProgramHost,
+  createProgram,
 } from "./compiler/program";
 import {
   CodeActionProvider,
@@ -37,6 +36,7 @@ import { ElmLsDiagnostics } from "./providers/diagnostics/elmLsDiagnostics";
 import { FileEventsHandler } from "./providers/handlers/fileEventsHandler";
 import { Settings } from "./util/settings";
 import { TextDocumentEvents } from "./util/textDocumentEvents";
+import { CommandManager } from "./commandManager";
 
 export interface ILanguageServer {
   readonly capabilities: InitializeResult;
@@ -78,30 +78,8 @@ export class Server implements ILanguageServer {
           `Found ${topLevelElmJsons.size} unique elmWorkspaces for workspace ${globUri}`,
         );
 
-        const textDocuments = container.resolve(TextDocumentEvents);
-
-        const nodeProgramHost = createNodeProgramHost();
-
-        // First try to read from text documents buffer, then fallback to disk
-        const programHost: IProgramHost = {
-          ...nodeProgramHost,
-          readFile: (uri) => {
-            const textDocument = textDocuments.get(URI.file(uri).toString());
-
-            if (textDocument) {
-              return Promise.resolve(textDocument.getText());
-            }
-
-            return nodeProgramHost.readFile(uri);
-          },
-        };
-
-        const elmWorkspaces: Program[] = [];
-        topLevelElmJsons.forEach((elmWorkspace) => {
-          elmWorkspaces.push(new Program(elmWorkspace, programHost));
-        });
-        container.register("ElmWorkspaces", {
-          useValue: elmWorkspaces,
+        container.register("ElmWorkspacePaths", {
+          useValue: Array.from(topLevelElmJsons.values()),
         });
         container.register<ElmToolingJsonManager>("ElmToolingJsonManager", {
           useValue: new ElmToolingJsonManager(),
@@ -127,24 +105,67 @@ export class Server implements ILanguageServer {
   }
 
   public async init(): Promise<void> {
+    const textDocuments = container.resolve(TextDocumentEvents);
+
+    const nodeProgramHost = createNodeProgramHost();
+
+    // First try to read from text documents buffer, then fallback to disk
+    const programHost: IProgramHost = {
+      ...nodeProgramHost,
+      readFile: (uri) => {
+        const textDocument = textDocuments.get(URI.file(uri).toString());
+
+        if (textDocument) {
+          return Promise.resolve(textDocument.getText());
+        }
+
+        return nodeProgramHost.readFile(uri);
+      },
+      logger: this.connection.console,
+      handleError: this.connection.window.showErrorMessage.bind(this),
+      onServerDidRestart: async (handler) => {
+        const progress = await this.connection.window.createWorkDoneProgress();
+        progress.begin("Restarting Elm Language Server", 0);
+
+        await handler((percent) => {
+          progress.report(percent, `${percent.toFixed(0)}%`);
+        });
+
+        progress.done();
+      },
+    };
+
+    const settings = container.resolve(Settings);
+    const clientSettings = await settings.getClientSettings();
+
     this.progress.begin("Indexing Elm", 0);
-    const elmWorkspaces = container.resolve<IProgram[]>("ElmWorkspaces");
+    const elmWorkspacePaths = container.resolve<URI[]>("ElmWorkspacePaths");
     await Promise.all(
-      elmWorkspaces
+      elmWorkspacePaths
         .map((ws) => ({ ws, indexedPercent: 0 }))
         .map((indexingWs, _, all) =>
-          indexingWs.ws.init((percent: number) => {
-            // update progress for this workspace
-            indexingWs.indexedPercent = percent;
+          createProgram(
+            indexingWs.ws,
+            (percent: number) => {
+              // update progress for this workspace
+              indexingWs.indexedPercent = percent;
 
-            // report average progress across all workspaces
-            const avgIndexed =
-              all.reduce((sum, { indexedPercent }) => sum + indexedPercent, 0) /
-              all.length;
-            this.progress.report(avgIndexed, `${Math.round(avgIndexed)}%`);
-          }),
+              // report average progress across all workspaces
+              const avgIndexed =
+                all.reduce(
+                  (sum, { indexedPercent }) => sum + indexedPercent,
+                  0,
+                ) / all.length;
+              this.progress.report(avgIndexed, `${Math.round(avgIndexed)}%`);
+            },
+            programHost,
+            clientSettings,
+          ),
         ),
-    );
+    ).then((programs) => {
+      CommandManager.initHandlers(this.connection);
+      container.register("ElmWorkspaces", { useValue: programs });
+    });
     this.progress.done();
   }
 
