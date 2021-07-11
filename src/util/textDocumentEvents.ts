@@ -15,7 +15,8 @@ import { IDocumentEvents } from "./documentEvents";
 export class TextDocumentEvents extends EventEmitter {
   // a single store of documents shared by all workspaces
   private _documents: { [uri: string]: TextDocument };
-  private _configuration: TextDocumentsConfiguration<TextDocument> = TextDocument;
+  private _configuration: TextDocumentsConfiguration<TextDocument> =
+    TextDocument;
 
   constructor() {
     super();

@@ -88,9 +88,8 @@ export class FileEventsHandler {
     const moduleName = this.getModuleNameFromFile(uri, program);
 
     if (moduleName) {
-      const addModuleDefinitionEdit = RefactorEditUtils.addModuleDeclaration(
-        moduleName,
-      );
+      const addModuleDefinitionEdit =
+        RefactorEditUtils.addModuleDeclaration(moduleName);
       return [addModuleDefinitionEdit];
     }
   }

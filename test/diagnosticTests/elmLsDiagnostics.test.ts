@@ -10,8 +10,10 @@ import { diagnosticsEquals } from "../../src/providers/diagnostics/fileDiagnosti
 import { Utils } from "../../src/util/utils";
 import { getSourceFiles } from "../utils/sourceParser";
 import { SourceTreeParser, srcUri } from "../utils/sourceTreeParser";
-import diffDefault from "jest-diff";
+import { diff } from "jest-diff";
 import path from "path";
+import { describe, expect } from "@jest/globals";
+import { fail } from "assert";
 
 describe("ElmLsDiagnostics", () => {
   let elmDiagnostics: ElmLsDiagnostics;
@@ -54,7 +56,7 @@ describe("ElmLsDiagnostics", () => {
     );
 
     if (debug && !diagnosticsEqual) {
-      console.log(diffDefault(expectedDiagnostics, diagnostics));
+      console.log(diff(expectedDiagnostics, diagnostics));
     }
 
     expect(diagnosticsEqual).toBeTruthy();

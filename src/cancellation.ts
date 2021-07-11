@@ -73,7 +73,8 @@ class FileBasedToken implements CancellationToken {
 }
 
 export class FileBasedCancellationTokenSource
-  implements AbstractCancellationTokenSource {
+  implements AbstractCancellationTokenSource
+{
   private _token: CancellationToken | undefined;
   constructor(private _cancellationFilePath: string) {}
 

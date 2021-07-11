@@ -17,7 +17,8 @@ export class DiagnosticsRequest {
   }
 
   private done = false;
-  private readonly token: CancellationTokenSource = new CancellationTokenSource();
+  private readonly token: CancellationTokenSource =
+    new CancellationTokenSource();
 
   private constructor(
     requestor: (

@@ -22,8 +22,9 @@ import {
   stripCommentLines,
   srcUri,
 } from "../utils/sourceTreeParser";
-import diffDefault from "jest-diff";
+import { diff } from "jest-diff";
 import path from "path";
+import { expect } from "@jest/globals";
 
 function codeActionEquals(a: CodeAction, b: CodeAction): boolean {
   return a.title === b.title;
@@ -132,7 +133,7 @@ export async function testCodeAction(
   );
 
   if (debug && !codeActionsExist) {
-    console.log(diffDefault(expectedCodeActions, codeActions));
+    console.log(diff(expectedCodeActions, codeActions));
   }
 
   expect(codeActionsExist).toBeTruthy();
@@ -142,8 +143,8 @@ export async function testCodeAction(
       trimTrailingWhitespace(expectedResultAfterEdits),
     );
 
-    const changesToApply = codeActions[testFixAll ? codeActions.length - 1 : 0]
-      .edit!.changes!;
+    const changesToApply =
+      codeActions[testFixAll ? codeActions.length - 1 : 0].edit!.changes!;
 
     Object.entries(expectedSources).forEach(([uri, source]) => {
       const edits = changesToApply[URI.file(srcUri + uri).toString()];

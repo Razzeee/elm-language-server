@@ -129,8 +129,8 @@ export class DiagnosticsProvider {
       this.clientSettings.extendedCapabilities?.clientInitiatedDiagnostics ??
       false;
 
-    const disableDiagnosticsOnChange = this.clientSettings
-      .onlyUpdateDiagnosticsOnSave;
+    const disableDiagnosticsOnChange =
+      this.clientSettings.onlyUpdateDiagnosticsOnSave;
 
     const handleSaveOrOpen = (d: { document: TextDocument }): void => {
       const program = this.elmWorkspaceMatcher.getProgramFor(
@@ -526,9 +526,8 @@ export class DiagnosticsProvider {
   private async getElmReviewDiagnostics(
     sourceFile: ISourceFile,
   ): Promise<void> {
-    const elmReviewDiagnostics = await this.elmReviewDiagnostics.createDiagnostics(
-      sourceFile,
-    );
+    const elmReviewDiagnostics =
+      await this.elmReviewDiagnostics.createDiagnostics(sourceFile);
 
     // remove old elm-review diagnostics
     this.resetDiagnostics(elmReviewDiagnostics, DiagnosticKind.ElmReview);

@@ -36,10 +36,11 @@ export class WorkspaceSymbolProvider {
           node: SyntaxNode,
         ): void => {
           if (node.text.includes(param.query)) {
-            const symbolInformation = SymbolInformationTranslator.translateNodeToSymbolInformation(
-              tree.uri,
-              node,
-            );
+            const symbolInformation =
+              SymbolInformationTranslator.translateNodeToSymbolInformation(
+                tree.uri,
+                node,
+              );
             if (symbolInformation) {
               const current = symbolInformationMap.get(tree.uri) || [];
               symbolInformationMap.set(tree.uri, [

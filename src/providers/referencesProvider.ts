@@ -40,8 +40,10 @@ export class ReferencesProvider {
         params.position,
       );
 
-      const definitionNode = checker.findDefinition(nodeAtPosition, sourceFile)
-        .symbol;
+      const definitionNode = checker.findDefinition(
+        nodeAtPosition,
+        sourceFile,
+      ).symbol;
 
       const references = References.find(definitionNode, params.program);
 

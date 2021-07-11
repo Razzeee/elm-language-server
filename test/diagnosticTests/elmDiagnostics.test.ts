@@ -15,8 +15,9 @@ import {
   getTargetPositionFromSource,
 } from "../utils/sourceParser";
 import { SourceTreeParser, srcUri } from "../utils/sourceTreeParser";
-import diffDefault from "jest-diff";
+import { diff } from "jest-diff";
 import path from "path";
+import { describe, expect } from "@jest/globals";
 
 const basicsSources = `
 --@ Basics.elm
@@ -142,7 +143,7 @@ describe("test elm diagnostics", () => {
     );
 
     if (debug && !diagnosticsEqual) {
-      console.log(diffDefault(expected, diagnostics));
+      console.log(diff(expected, diagnostics));
     }
 
     expect(diagnosticsEqual).toBeTruthy();
@@ -652,7 +653,7 @@ func3 =
     );
   });
 
-  xtest("infinite type error", async () => {
+  test.skip("infinite type error", async () => {
     const source = `
 --@ Test.elm
 module Test exposing (..)

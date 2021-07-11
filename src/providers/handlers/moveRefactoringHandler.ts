@@ -104,8 +104,8 @@ export class MoveRefactoringHandler {
 
       const moduleName = TreeUtils.getModuleNameNode(tree)?.text;
 
-      const destinationModuleName = TreeUtils.getModuleNameNode(destinationTree)
-        ?.text;
+      const destinationModuleName =
+        TreeUtils.getModuleNameNode(destinationTree)?.text;
 
       if (
         declarationNode &&

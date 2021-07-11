@@ -27,8 +27,10 @@ export class RenameUtils {
         position,
       );
 
-      const definitionNode = checker.findDefinition(nodeAtPosition, sourceFile)
-        .symbol;
+      const definitionNode = checker.findDefinition(
+        nodeAtPosition,
+        sourceFile,
+      ).symbol;
 
       if (definitionNode) {
         const refTree = program.getSourceFile(definitionNode.node.tree.uri);

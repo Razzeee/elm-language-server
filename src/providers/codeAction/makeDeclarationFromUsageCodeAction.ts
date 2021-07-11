@@ -57,9 +57,8 @@ function getEdits(params: ICodeActionParams, range: Range): TextEdit[] {
     const tree = params.sourceFile.tree;
     const checker = params.program.getTypeChecker();
 
-    const insertLineNumber = RefactorEditUtils.findLineNumberAfterCurrentFunction(
-      nodeAtPosition,
-    );
+    const insertLineNumber =
+      RefactorEditUtils.findLineNumberAfterCurrentFunction(nodeAtPosition);
 
     const type = checker.findType(nodeAtPosition);
     const typeString: string = checker.typeToString(type, params.sourceFile);

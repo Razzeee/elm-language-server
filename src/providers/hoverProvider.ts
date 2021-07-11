@@ -46,8 +46,10 @@ export class HoverProvider {
         params.position,
       );
 
-      let definitionNode = checker.findDefinition(nodeAtPosition, sourceFile)
-        .symbol;
+      let definitionNode = checker.findDefinition(
+        nodeAtPosition,
+        sourceFile,
+      ).symbol;
 
       if (definitionNode) {
         if (

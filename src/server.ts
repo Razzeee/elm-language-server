@@ -73,9 +73,8 @@ export class Server implements ILanguageServer {
         const listOfElmJsonFolders = elmJsons.map((a) =>
           this.getElmJsonFolder(a),
         );
-        const topLevelElmJsons: Map<string, URI> = this.findTopLevelFolders(
-          listOfElmJsonFolders,
-        );
+        const topLevelElmJsons: Map<string, URI> =
+          this.findTopLevelFolders(listOfElmJsonFolders);
         this.connection.console.info(
           `Found ${topLevelElmJsons.size} unique elmWorkspaces for workspace ${globUri}`,
         );
@@ -120,9 +119,8 @@ export class Server implements ILanguageServer {
   }
 
   get capabilities(): InitializeResult {
-    const calculator: CapabilityCalculator = container.resolve(
-      CapabilityCalculator,
-    );
+    const calculator: CapabilityCalculator =
+      container.resolve(CapabilityCalculator);
     return {
       capabilities: calculator.capabilities,
     };

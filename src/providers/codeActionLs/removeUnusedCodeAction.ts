@@ -251,12 +251,13 @@ function getEditsForDiagnostic(
           if (firstUsedIndex >= 2) {
             const val = allValues[firstUsedIndex - 1];
 
-            const removeValueWithCommaEdit = RefactorEditUtils.removeValueFromImport(
-              sourceFile.tree,
-              moduleName.text,
-              val,
-              /* forceRemovePrecedingComma */ true,
-            );
+            const removeValueWithCommaEdit =
+              RefactorEditUtils.removeValueFromImport(
+                sourceFile.tree,
+                moduleName.text,
+                val,
+                /* forceRemovePrecedingComma */ true,
+              );
 
             if (removeValueWithCommaEdit) {
               return { edits: [removeValueWithCommaEdit, removeValueEdit] };

@@ -286,9 +286,10 @@ export class CodeActionProvider {
     // and the fix all code action for that error if there are other diagnostics with
     // the same error code
     (<IDiagnostic[]>params.context.diagnostics).forEach((diagnostic) => {
-      const registrations = CodeActionProvider.errorCodeToRegistrationMap.getAll(
-        diagnostic.data.code,
-      );
+      const registrations =
+        CodeActionProvider.errorCodeToRegistrationMap.getAll(
+          diagnostic.data.code,
+        );
 
       // Set the params range to the diagnostic range so we get the correct nodes
       params.range = diagnostic.range;
@@ -334,9 +335,9 @@ export class CodeActionProvider {
     });
 
     results.push(
-      ...Array.from(
-        CodeActionProvider.refactorRegistrations.values(),
-      ).flatMap((registration) => registration.getAvailableActions(params)),
+      ...Array.from(CodeActionProvider.refactorRegistrations.values()).flatMap(
+        (registration) => registration.getAvailableActions(params),
+      ),
     );
 
     return [
@@ -397,9 +398,8 @@ export class CodeActionProvider {
 
     const fixIdOrRefactorName =
       "fixId" in action.data ? action.data.fixId : action.data.refactorName;
-    const actionPriority = CodeActionProvider.preferredActions.get(
-      fixIdOrRefactorName,
-    );
+    const actionPriority =
+      CodeActionProvider.preferredActions.get(fixIdOrRefactorName);
     if (!actionPriority) {
       return false;
     }

@@ -35,9 +35,7 @@ export class SyntaxNodeMap<K extends SyntaxNode, V> {
   }
 
   public forEach(callback: (val: V, key: K) => void): void {
-    this.map.forEach((val, key) =>
-      callback(val, ({ id: key } as unknown) as K),
-    );
+    this.map.forEach((val, key) => callback(val, { id: key } as unknown as K));
   }
 
   public clear(): void {

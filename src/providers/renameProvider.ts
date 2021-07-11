@@ -53,12 +53,13 @@ export class RenameProvider {
     newName = this.uppercaseNewNameIfModuleDeclaration(newName, affectedNodes);
 
     const renameChanges: RenameFile[] = [];
-    const moduleDeclarationRenameChange = this.createModuleDeclarationRenameChange(
-      affectedNodes,
-      params.program,
-      params,
-      newName,
-    );
+    const moduleDeclarationRenameChange =
+      this.createModuleDeclarationRenameChange(
+        affectedNodes,
+        params.program,
+        params,
+        newName,
+      );
     if (moduleDeclarationRenameChange) {
       renameChanges.push(moduleDeclarationRenameChange);
     }

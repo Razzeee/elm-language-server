@@ -30,9 +30,8 @@ const functionNameRegex = new RegExp("[a-zA-Z0-9_]+");
 
 export class TreeUtils {
   public static getModuleNameNode(tree: Tree): SyntaxNode | undefined {
-    const moduleDeclaration:
-      | SyntaxNode
-      | undefined = this.findModuleDeclaration(tree);
+    const moduleDeclaration: SyntaxNode | undefined =
+      this.findModuleDeclaration(tree);
     return moduleDeclaration?.childForFieldName("name") ?? undefined;
   }
 

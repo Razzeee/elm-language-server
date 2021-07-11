@@ -206,9 +206,8 @@ export class Program implements IProgram {
     let moduleUri = sourceFile.project.moduleToUriMap.get(importableModuleName);
 
     if (!moduleUri && sourceFile.isTestFile) {
-      moduleUri = sourceFile.project.testModuleToUriMap.get(
-        importableModuleName,
-      );
+      moduleUri =
+        sourceFile.project.testModuleToUriMap.get(importableModuleName);
     }
 
     if (moduleUri) {

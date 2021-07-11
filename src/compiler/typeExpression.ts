@@ -372,12 +372,13 @@ export class TypeExpression {
       fieldTypes[field.name] = this.typeExpressionType(field.typeExpression);
     });
 
-    const fieldRefs = RecordFieldReferenceTable.fromExpressions(
-      fieldExpressions,
-    );
+    const fieldRefs =
+      RecordFieldReferenceTable.fromExpressions(fieldExpressions);
 
-    const baseTypeDefinition = findDefinition(record.baseType, this.program)
-      ?.expr;
+    const baseTypeDefinition = findDefinition(
+      record.baseType,
+      this.program,
+    )?.expr;
 
     const baseType = baseTypeDefinition
       ? this.getTypeVar(baseTypeDefinition)

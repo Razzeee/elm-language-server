@@ -197,13 +197,11 @@ export class ElmMakeDiagnostics {
   ): Promise<IElmIssue[]> {
     const settings = await this.settings.getClientSettings();
 
-    const [relativePathsToFiles, message]: [
-      NonEmptyArray<string>,
-      string,
-    ] = await this.elmToolingJsonManager.getEntrypoints(
-      workspaceRootPath,
-      sourceFile,
-    );
+    const [relativePathsToFiles, message]: [NonEmptyArray<string>, string] =
+      await this.elmToolingJsonManager.getEntrypoints(
+        workspaceRootPath,
+        sourceFile,
+      );
 
     this.connection.console.info(
       `Find entrypoints: ${message}. See https://github.com/elm-tooling/elm-language-server#configuration for more information.`,

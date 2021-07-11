@@ -81,10 +81,11 @@ export class CompletionProvider {
         params.position,
       );
 
-      const nodeAtLineBefore = TreeUtils.getNamedDescendantForLineBeforePosition(
-        tree.rootNode,
-        params.position,
-      );
+      const nodeAtLineBefore =
+        TreeUtils.getNamedDescendantForLineBeforePosition(
+          tree.rootNode,
+          params.position,
+        );
 
       const nodeAtLineAfter = TreeUtils.getNamedDescendantForLineAfterPosition(
         tree.rootNode,
@@ -197,9 +198,8 @@ export class CompletionProvider {
           }),
         ];
       } else if (isAtStartOfLine) {
-        const topLevelFunctions = TreeUtils.findAllTopLevelFunctionDeclarations(
-          tree,
-        );
+        const topLevelFunctions =
+          TreeUtils.findAllTopLevelFunctionDeclarations(tree);
 
         const exposedValues = TreeUtils.descendantsOfType(
           tree.rootNode,
@@ -224,8 +224,8 @@ export class CompletionProvider {
               ),
           );
 
-        const snippetsFroMissingImplementations = possibleMissingImplementations.map(
-          (a) =>
+        const snippetsFroMissingImplementations =
+          possibleMissingImplementations.map((a) =>
             this.createSnippet(
               "func " + a.firstChild!.text,
               [
@@ -235,7 +235,7 @@ export class CompletionProvider {
               ],
               "Function with type annotation",
             ),
-        );
+          );
 
         return [
           ...snippetsFroMissingImplementations,
@@ -543,9 +543,11 @@ export class CompletionProvider {
       const markdownDocumentation = HintHelper.createHint(element.node);
       let sortPrefix = "d";
       if (element.fromModule.maintainerAndPackageName) {
-        const matchedRanking: string = (RANKING_LIST as {
-          [index: string]: string;
-        })[element.fromModule.maintainerAndPackageName];
+        const matchedRanking: string = (
+          RANKING_LIST as {
+            [index: string]: string;
+          }
+        )[element.fromModule.maintainerAndPackageName];
 
         if (matchedRanking) {
           sortPrefix = `e${matchedRanking}`;
@@ -656,9 +658,8 @@ export class CompletionProvider {
     moduleDefinition = false,
   ): CompletionItem[] {
     const completions: CompletionItem[] = [];
-    const topLevelFunctions = TreeUtils.findAllTopLevelFunctionDeclarations(
-      tree,
-    );
+    const topLevelFunctions =
+      TreeUtils.findAllTopLevelFunctionDeclarations(tree);
     const sortPrefix = "b";
     // Add functions
     if (topLevelFunctions) {
@@ -986,9 +987,8 @@ export class CompletionProvider {
             nodeToProcess.firstNamedChild.firstNamedChild?.type ===
               "lower_case_identifier"
           ) {
-            const markdownDocumentation = HintHelper.createHintFromDefinitionInLet(
-              nodeToProcess,
-            );
+            const markdownDocumentation =
+              HintHelper.createHintFromDefinitionInLet(nodeToProcess);
             result.push(
               this.createFunctionCompletion({
                 markdownDocumentation,
@@ -1004,12 +1004,12 @@ export class CompletionProvider {
         const pattern = node.parent.childForFieldName("pattern");
 
         if (pattern) {
-          const caseBranchVariableNodes = pattern.descendantsOfType(
-            "lower_pattern",
-          );
+          const caseBranchVariableNodes =
+            pattern.descendantsOfType("lower_pattern");
           if (caseBranchVariableNodes) {
             caseBranchVariableNodes.forEach((a) => {
-              const markdownDocumentation = HintHelper.createHintFromDefinitionInCaseBranch();
+              const markdownDocumentation =
+                HintHelper.createHintFromDefinitionInCaseBranch();
               result.push(
                 this.createVariableCompletion({
                   markdownDocumentation,
@@ -1029,9 +1029,8 @@ export class CompletionProvider {
       ) {
         node.parent.firstChild.children.forEach((child) => {
           if (child.type === "lower_pattern") {
-            const markdownDocumentation = HintHelper.createHintFromFunctionParameter(
-              child,
-            );
+            const markdownDocumentation =
+              HintHelper.createHintFromFunctionParameter(child);
             result.push(
               this.createVariableCompletion({
                 markdownDocumentation,
@@ -1041,18 +1040,16 @@ export class CompletionProvider {
               }),
             );
 
-            const annotationTypeNode = TreeUtils.getTypeOrTypeAliasOfFunctionParameter(
-              child,
-            );
+            const annotationTypeNode =
+              TreeUtils.getTypeOrTypeAliasOfFunctionParameter(child);
             if (annotationTypeNode) {
               const typeDeclarationNode = TreeUtils.findTypeAliasDeclaration(
                 tree,
                 annotationTypeNode.text,
               );
               if (typeDeclarationNode) {
-                const fields = TreeUtils.getAllFieldsFromTypeAlias(
-                  typeDeclarationNode,
-                );
+                const fields =
+                  TreeUtils.getAllFieldsFromTypeAlias(typeDeclarationNode);
                 if (fields) {
                   fields.forEach((element) => {
                     const hint = HintHelper.createHintForTypeAliasReference(
@@ -1080,9 +1077,8 @@ export class CompletionProvider {
             const lowerPatterns = child.descendantsOfType("lower_pattern");
 
             lowerPatterns.forEach((pattern) => {
-              const markdownDocumentation = HintHelper.createHintFromFunctionParameter(
-                pattern,
-              );
+              const markdownDocumentation =
+                HintHelper.createHintFromFunctionParameter(pattern);
               result.push(
                 this.createVariableCompletion({
                   markdownDocumentation,

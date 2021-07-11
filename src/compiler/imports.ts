@@ -283,10 +283,11 @@ export class Imports {
                       exposedType,
                     )?.text;
 
-                    const exposedUnionConstructors = !!TreeUtils.findFirstNamedChildOfType(
-                      "exposed_union_constructors",
-                      exposedType,
-                    );
+                    const exposedUnionConstructors =
+                      !!TreeUtils.findFirstNamedChildOfType(
+                        "exposed_union_constructors",
+                        exposedType,
+                      );
 
                     if (typeName) {
                       const symbol = exposedFromRemoteModule.get(typeName);

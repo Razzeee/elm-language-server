@@ -23,7 +23,7 @@ export class Sequence<T> {
   public map<U>(mapper: (value: T) => U): Sequence<U> {
     const newSequence = new Sequence<T>(this.first, this.getter);
     newSequence.mappers.push(mapper);
-    return (newSequence as unknown) as Sequence<U>;
+    return newSequence as unknown as Sequence<U>;
   }
 
   public find(func: (value: T) => boolean): T | undefined {

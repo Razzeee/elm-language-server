@@ -486,10 +486,8 @@ export interface InferenceResult {
 }
 
 export class InferenceScope {
-  private expressionTypes: SyntaxNodeMap<
-    Expression,
-    Type
-  > = new SyntaxNodeMap();
+  private expressionTypes: SyntaxNodeMap<Expression, Type> =
+    new SyntaxNodeMap();
   private diagnostics: Diagnostic[] = [];
 
   private bindings: SyntaxNodeMap<SyntaxNode, Type> = new SyntaxNodeMap<
@@ -506,10 +504,8 @@ export class InferenceScope {
 
   private childDeclarations = new Set<EValueDeclaration>();
 
-  private recordDiffs: SyntaxNodeMap<
-    Expression,
-    RecordDiff
-  > = new SyntaxNodeMap();
+  private recordDiffs: SyntaxNodeMap<Expression, RecordDiff> =
+    new SyntaxNodeMap();
 
   private typeChecker: TypeChecker;
 
@@ -898,8 +894,8 @@ export class InferenceScope {
     this.resolvedDeclarations.set(declaration, result.type);
     this.expressionTypes.set(declaration, result.type);
 
-    const funcName = TreeUtils.getFunctionNameNodeFromDefinition(declaration)
-      ?.text;
+    const funcName =
+      TreeUtils.getFunctionNameNodeFromDefinition(declaration)?.text;
 
     if (funcName) {
       this.nonShadowableNames.add(funcName);
@@ -1057,10 +1053,12 @@ export class InferenceScope {
         );
 
         if (typeAlias && typeAlias.nodeType === "TypeAliasDeclaration") {
-          const fields = (TypeExpression.typeAliasDeclarationInference(
-            typeAlias,
-            this.program,
-          ).type as TRecord)?.fields;
+          const fields = (
+            TypeExpression.typeAliasDeclarationInference(
+              typeAlias,
+              this.program,
+            ).type as TRecord
+          )?.fields;
 
           if (fields) {
             return fields[definition.expr.text];

@@ -47,10 +47,11 @@ export class DocumentSymbolProvider {
     const traverse: (node: SyntaxNode) => void = (node: SyntaxNode): void => {
       cancellationToken?.throwIfCancellationRequested();
 
-      const symbolInformation = SymbolInformationTranslator.translateNodeToSymbolInformation(
-        param.textDocument.uri,
-        node,
-      );
+      const symbolInformation =
+        SymbolInformationTranslator.translateNodeToSymbolInformation(
+          param.textDocument.uri,
+          node,
+        );
       if (symbolInformation) {
         symbolInformationList.push(symbolInformation);
       }

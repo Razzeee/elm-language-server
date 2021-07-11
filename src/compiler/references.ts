@@ -175,9 +175,10 @@ export class References {
             break;
           case "Port":
             {
-              const portNameNode = TreeUtils.getTypeOrTypeAliasOrPortNameNodeFromDefinition(
-                definitionNode.node,
-              );
+              const portNameNode =
+                TreeUtils.getTypeOrTypeAliasOrPortNameNodeFromDefinition(
+                  definitionNode.node,
+                );
               if (portNameNode) {
                 const portName = portNameNode.text;
                 if (refSourceTree.writeable) {
@@ -299,9 +300,10 @@ export class References {
           case "Type":
           case "TypeAlias":
             {
-              const typeOrTypeAliasNameNode = TreeUtils.getTypeOrTypeAliasOrPortNameNodeFromDefinition(
-                definitionNode.node,
-              );
+              const typeOrTypeAliasNameNode =
+                TreeUtils.getTypeOrTypeAliasOrPortNameNodeFromDefinition(
+                  definitionNode.node,
+                );
 
               if (typeOrTypeAliasNameNode) {
                 const typeOrTypeAliasName = typeOrTypeAliasNameNode.text;
@@ -333,10 +335,11 @@ export class References {
                     refSourceTree.tree,
                   );
                   if (moduleDeclarationNode) {
-                    const exposedNode = TreeUtils.findExposedTypeOrTypeAliasNode(
-                      moduleDeclarationNode,
-                      typeOrTypeAliasName,
-                    );
+                    const exposedNode =
+                      TreeUtils.findExposedTypeOrTypeAliasNode(
+                        moduleDeclarationNode,
+                        typeOrTypeAliasName,
+                      );
 
                     if (exposedNode && refSourceTree.writeable) {
                       references.push({
@@ -382,10 +385,11 @@ export class References {
                           ?.get(importedModuleAlias);
 
                         if (importClause?.type === "Import") {
-                          const exposedNode = TreeUtils.findExposedTypeOrTypeAliasNode(
-                            importClause.node,
-                            typeOrTypeAliasNameNode.text,
-                          );
+                          const exposedNode =
+                            TreeUtils.findExposedTypeOrTypeAliasNode(
+                              importClause.node,
+                              typeOrTypeAliasNameNode.text,
+                            );
 
                           if (exposedNode) {
                             references.push({
@@ -585,10 +589,11 @@ export class References {
                   node: nameNode,
                   uri: definitionNode.node.tree.uri,
                 });
-                const unionConstructorCalls = TreeUtils.findUnionConstructorCalls(
-                  refSourceTree.tree,
-                  nameNode.text,
-                );
+                const unionConstructorCalls =
+                  TreeUtils.findUnionConstructorCalls(
+                    refSourceTree.tree,
+                    nameNode.text,
+                  );
 
                 if (unionConstructorCalls) {
                   references.push(
@@ -628,11 +633,12 @@ export class References {
 
                 if (found && found.type === "UnionConstructor") {
                   if (otherSourceFile.writeable) {
-                    const unionConstructorCallsFromOtherFiles = TreeUtils.findUnionConstructorCalls(
-                      otherSourceFile.tree,
-                      nameNode.text,
-                      importedModuleAlias,
-                    );
+                    const unionConstructorCallsFromOtherFiles =
+                      TreeUtils.findUnionConstructorCalls(
+                        otherSourceFile.tree,
+                        nameNode.text,
+                        importedModuleAlias,
+                      );
                     if (unionConstructorCallsFromOtherFiles) {
                       references.push(
                         ...unionConstructorCallsFromOtherFiles.map((node) => {
@@ -704,9 +710,8 @@ export class References {
               const typeVariableNodes: SyntaxNode[] = [];
 
               if (topLevelAnnotation) {
-                const topLevelValueDeclaration = TreeUtils.getValueDeclaration(
-                  topLevelAnnotation,
-                );
+                const topLevelValueDeclaration =
+                  TreeUtils.getValueDeclaration(topLevelAnnotation);
 
                 const typeAnnotations = [
                   topLevelAnnotation,

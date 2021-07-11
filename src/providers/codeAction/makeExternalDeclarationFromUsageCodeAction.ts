@@ -74,10 +74,11 @@ function getEdits(
 
     return moduleNames
       .map((moduleName) => {
-        const destinationSource = params.program.getSourceFileOfImportableModule(
-          params.sourceFile,
-          moduleName,
-        );
+        const destinationSource =
+          params.program.getSourceFileOfImportableModule(
+            params.sourceFile,
+            moduleName,
+          );
 
         if (destinationSource && destinationSource.writeable) {
           const type = checker.findType(nodeAtPosition);
