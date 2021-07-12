@@ -33,6 +33,7 @@ export interface IElmAnalyseJson {
     UnusedValueConstructor?: boolean;
     UnusedVariable?: boolean;
     UseConsOverConcat?: boolean;
+    MissingTypeAnnotation?: boolean;
   };
   excludedPaths?: string[];
 }

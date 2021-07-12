@@ -17,7 +17,7 @@ import { ElmWorkspaceMatcher } from "../../util/elmWorkspaceMatcher";
 import { MultistepOperation } from "../../util/multistepOperation";
 import { IClientSettings } from "../../util/settings";
 import { TextDocumentEvents } from "../../util/textDocumentEvents";
-import { Diagnostic } from "../../compiler/diagnostics";
+import { Diagnostic, Diagnostics } from "../../compiler/diagnostics";
 import { ASTProvider } from "../astProvider";
 import { DiagnosticSource } from "./diagnosticSource";
 import { DiagnosticsRequest } from "./diagnosticsRequest";
@@ -26,7 +26,7 @@ import { ElmMakeDiagnostics } from "./elmMakeDiagnostics";
 import { DiagnosticKind, FileDiagnostics } from "./fileDiagnostics";
 import { ISourceFile } from "../../compiler/forest";
 import { ElmReviewDiagnostics } from "./elmReviewDiagnostics";
-import { Url } from "url";
+import { IElmAnalyseJsonService } from "./elmAnalyseJsonService";
 
 export interface IElmIssueRegion {
   start: { line: number; column: number };
@@ -104,6 +104,8 @@ export class DiagnosticsProvider {
   private diagnosticsOperation: MultistepOperation;
   private changeSeq = 0;
 
+  private elmAnalyseJsonService: IElmAnalyseJsonService;
+
   constructor() {
     this.clientSettings = container.resolve("ClientSettings");
 
@@ -118,6 +120,10 @@ export class DiagnosticsProvider {
     this.diagnosticsOperation = new MultistepOperation(this.connection);
 
     this.workspaces = container.resolve("ElmWorkspaces");
+
+    this.elmAnalyseJsonService = container.resolve<IElmAnalyseJsonService>(
+      "ElmAnalyseJsonService",
+    );
 
     const astProvider = container.resolve(ASTProvider);
 
@@ -409,6 +415,10 @@ export class DiagnosticsProvider {
 
             const sourceFile = program.getForest().getByUri(uri);
 
+            const elmAnalyseJson = this.elmAnalyseJsonService.getElmAnalyseJson(
+              program.getRootPath().fsPath,
+            );
+
             if (!sourceFile) {
               goNext();
               return;
@@ -453,7 +463,20 @@ export class DiagnosticsProvider {
                         sourceFile,
                         serverCancellationToken,
                       )
-                      .map(convertFromCompilerDiagnostic),
+                      .map(convertFromCompilerDiagnostic)
+                      .filter((diagnostic) => {
+                        if (
+                          diagnostic.data.code ===
+                            Diagnostics.MissingTypeAnnotation.code &&
+                          elmAnalyseJson.checks &&
+                          elmAnalyseJson.checks.MissingTypeAnnotation !==
+                            undefined
+                        ) {
+                          return elmAnalyseJson.checks?.MissingTypeAnnotation;
+                        } else {
+                          return true;
+                        }
+                      }),
                   );
 
                   if (this.changeSeq !== seq) {
